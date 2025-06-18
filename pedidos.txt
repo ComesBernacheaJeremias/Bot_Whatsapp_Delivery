@@ -1,0 +1,13 @@
+[6/6/2025, 07:26:32] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Comes ersa | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777391037 | 🛍️ hamburguesa - $1500 | 🛍️ papas - $800 | 💵 Total: $2300
+[6/6/2025, 07:27:55] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Eremias | 📍 Dirección: Ayaxucho 1016 | 📱 Número: 5493777391037 | 🛍️ hamburguesa - $1500 | 💵 Total: $1500
+[6/6/2025, 09:00:09] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jeremias | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777391037 | 🛍️ hamburguesa - $1500 | 🛍️ papas - $800 | 💵 Total: $2300
+[7/6/2025, 10:37:49] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Comes | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777391037 | 🛍️ 2 hamburguesa(s) - $3000 | 🛍️ 1 coca(s) - $700 | 🛍️ 2 coca(s) - $1400 | 💵 Total: $5100
+[7/6/2025, 10:50:35] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Ola | 📍 Dirección: Ayacucho | 📱 Número: 5493777391037 | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 12 empanada(s) - $14400 | 🛍️ 3 hamburguesa(s) - $4500 | 🛍️ 5 empanada(s) - $6000 | 💵 Total: $26400
+[7/6/2025, 10:51:30] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Ayacucho | 📱 Número: 5493777391037 | 🛍️ 1 empanada(s) - $1200 | 💵 Total: $1200
+[7/6/2025, 11:16:25] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Jere | 📱 Número: 5493777391037 | 🛍️ 2 coca(s) - $1400 | 🛍️ 3 papa(s) - $2400 | 💵 Total: $3800
+[7/6/2025, 06:35:08] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Jere | 📱 Número: 5493777391037 | 🛍️ 1 coca(s) - $700 | 💵 Total: $700
+[9/6/2025, 11:16:24] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Ayacucho | 📱 Número: 5493777391037 | 🛍️ 4 misil(s) - $20000 | 🛍️ 2 empanada de carne(s) - $2400 | 🛍️ 2 empanada de jamon y queso(s) - $1800 | 💵 Total: $24200
+[9/6/2025, 11:55:17] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Io | 📍 Dirección: Yyay | 📱 Número: 5493777391037 | 🛍️ 3 misil(s) - $15000 | 🛍️ 3 coca(s) - $2100 | 🛍️ 3 coca(s) - $2100 | 🛍️ 2 hamburguesa(s) - $3000 | 💵 Total: $22200
+[9/6/2025, 12:12:03] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Florencia Comes | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777839311 | 💳 Método de pago: Transferencia | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 2 hamburguesa(s) - $3000 | 💵 Total: $4500
+[9/6/2025, 12:21:10] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Igna | 📍 Dirección: Yy | 📱 Número: 5493777391037 | 💳 Método de pago: Transferencia | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 1 coca(s) - $700 | 💵 Total: $2200
+[9/6/2025, 06:22:06] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Iii | 📱 Número: 5493777391037 | 💳 Método de pago: Efectivo | 🛍️ 3 hamburguesa(s) - $4500 | 💵 Total: $4500
