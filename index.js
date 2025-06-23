@@ -83,18 +83,23 @@ const numerosTexto = {
 };
 
 function convertirTextoACantidad(texto) {
-    if (!texto) return 1; // Valor por defecto
-    texto = texto.trim().toLowerCase();
+    if (!texto) return 1;
+    texto = texto.toLowerCase().trim();
 
-    // Buscar coincidencia en numerosTexto
-    if (numerosTexto[texto]) {
-        return numerosTexto[texto];
+    // Ordenar frases largas primero para evitar coincidencias parciales
+    const frasesOrdenadas = Object.keys(numerosTexto).sort((a, b) => b.length - a.length);
+
+    for (let frase of frasesOrdenadas) {
+        if (texto.includes(frase)) {
+            return numerosTexto[frase];
+        }
     }
 
-    // Intentar parsear número directo
+    // Intentar parsear número directo si no se encontró ninguna coincidencia
     const numero = parseInt(texto);
     return isNaN(numero) ? 1 : numero;
 }
+
 
 client.on('qr', (qr) => {
     console.log('📲 Escaneá este QR con tu WhatsApp:');
@@ -361,12 +366,11 @@ client.on('message', async (message) => {
         console.log('Partes del mensaje:', partes);
 
         const cantidadRegex = new RegExp(
-            `(?:quiero|dame|pedime|traeme|puede ser)?\\s*` +
-            `(?:(\\d+|una|un|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte|` +
-            `(?:una|un|dos|tres|cuatro)?\\s*(?:docena|docenas)(?:\\s*y\\s*media)?(?:\\s*de)?)\\s*` +
-            `(?:porciones?\\s*de\\s+)?)?` +
-            `(${nombresProductosRegex})` +
-            `(?:\\s|$|s)`, 'i');
+        `(?:quiero|dame|pedime|traeme|puede ser)?\\s*` +
+        `(?:(una docena y media|dos docenas y media|\\d+|una docena y media de|dos docenas y media de|una docena|una docena de|media docena|media docena de|\\d+ docenas|\\d+ docenas de|una|un|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte)\\s*(?:de)?)?\\s*` +
+        `(${nombresProductosRegex})` +
+        `(?:\\s|$|s)`, 'i');
+
             
         for (let parte of partes) {
             parte = normalizarTexto(parte);
@@ -431,5 +435,15 @@ client.on('message', async (message) => {
 
     client.sendMessage(from, '🤔 No entendí. Podés escribir "quiero una hamburguesa y dos pizzas", "cuánto sale la hamburguesa" o "total" para ver tu pedido.');
 });
+
+
+
+// 🔍 Pruebas manuales
+console.log(convertirTextoACantidad("una docena y media de empanadas de jyq")); // debería dar 18
+console.log(convertirTextoACantidad("3 docenas de empanadas de carne"));       // debería dar 36
+console.log(convertirTextoACantidad("media docena de empanadas"));             // debería dar 6
+console.log(convertirTextoACantidad("dos"));                                    // debería dar 2
+console.log(convertirTextoACantidad("7"));                                      // debería dar 7
+console.log(convertirTextoACantidad("cuatro docenas de empanadas"));           // debería dar 48
 
 client.initialize();
