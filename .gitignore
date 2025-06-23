@@ -1,2 +1,4 @@
 node_modules/
 .local-chromium/
+node_modules/
+node_modules/puppeteer-core/.local-chromium/
