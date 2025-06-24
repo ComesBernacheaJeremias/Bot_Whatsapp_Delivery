@@ -362,7 +362,8 @@ client.on('message', async (message) => {
     }
 
     if (!agregado) {
-        const partes = texto.split(/\s*(?:y|,)\s*/).filter(part => part.trim());
+        //const partes = texto.split(/\s*(?:y|,)\s*/).filter(part => part.trim());
+        const partes = [texto]
         console.log('Partes del mensaje:', partes);
 
         const cantidadRegex = new RegExp(
