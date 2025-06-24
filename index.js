@@ -361,52 +361,47 @@ client.on('message', async (message) => {
         agregado = true;
     }
 
-    if (!agregado) {
-        //const partes = texto.split(/\s*(?:y|,)\s*/).filter(part => part.trim());
-        const partes = [texto]
-        console.log('Partes del mensaje:', partes);
-
+    // Reemplazar la parte del código donde procesas los pedidos
+if (!agregado) {
+        // Expresión regular mejorada para capturar múltiples productos en el mensaje
         const cantidadRegex = new RegExp(
-        `(?:quiero|dame|pedime|traeme|puede ser)?\\s*` +
-        `(?:(una docena y media|dos docenas y media|\\d+|una docena y media de|dos docenas y media de|una docena|una docena de|media docena|media docena de|\\d+ docenas|\\d+ docenas de|una|un|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte)\\s*(?:de)?)?\\s*` +
-        `(${nombresProductosRegex})` +
-        `(?:\\s|$|s)`, 'i');
+            `(?:quiero|dame|pedime|traeme|puede ser)?\\s*` +
+            `(?:(una docena y media|dos docenas y media|una docena|media docena|\\d+ docenas|\\d+|una|un|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte)\\s*(?:de)?)?\\s*` +
+            `(${nombresProductosRegex})` +
+            `(?:\\s|$|s)`, 'ig' // 'i' para ignorar mayúsculas, 'g' para capturar todas las coincidencias
+        );
 
-            
-        for (let parte of partes) {
-            parte = normalizarTexto(parte);
-            console.log('Procesando parte normalizada:', parte);
+        console.log('Procesando mensaje completo:', texto);
 
-            let match;
-            cantidadRegex.lastIndex = 0;
-            if ((match = cantidadRegex.exec(parte)) !== null) {
-                console.log('Match encontrado:', match);
-                console.log('Cantidad capturada:', match[1], 'Producto:', match[2]);
-                let cantidad = 1;
-                if (match[1]) {
-                    cantidad = convertirTextoACantidad(match[1]);
-                    if (isNaN(cantidad)) {
-                        console.log('Error: Cantidad no válida:', match[1]);
-                        cantidad = 1;
-                    }
+        // Buscar todas las coincidencias en el mensaje
+        let matches = [...texto.matchAll(cantidadRegex)];
+        console.log('Coincidencias encontradas:', matches);
+
+        for (let match of matches) {
+            console.log('Match encontrado:', match);
+            console.log('Cantidad capturada:', match[1], 'Producto:', match[2]);
+            let cantidad = 1;
+            if (match[1]) {
+                cantidad = convertirTextoACantidad(match[1]);
+                if (isNaN(cantidad)) {
+                    console.log('Error: Cantidad no válida:', match[1]);
+                    cantidad = 1;
                 }
-                let productoBase = match[2].toLowerCase();
-                console.log('Buscando producto en menú:', productoBase);
+            }
+            let productoBase = match[2].toLowerCase();
+            console.log('Buscando producto en menú:', productoBase);
 
-                if (productos[productoBase]) {
-                    const precio = productos[productoBase] * cantidad;
-                    user.total += precio;
-                    const pedidoLinea = `🛍️ ${cantidad} ${productoBase}(s) - $${precio}`;
-                    user.pedido.push(pedidoLinea);
-                    nuevosPedidos.push(pedidoLinea);
-                    console.log('Pedido agregado:', pedidoLinea);
-                    console.log('Estado actual del pedido:', user.pedido, 'Total:', user.total);
-                    agregado = true;
-                } else {
-                    console.log('Producto no encontrado en menú:', productoBase);
-                }
+            if (productos[productoBase]) {
+                const precio = productos[productoBase] * cantidad;
+                user.total += precio;
+                const pedidoLinea = `🛍️ ${cantidad} ${productoBase}(s) - $${precio}`;
+                user.pedido.push(pedidoLinea);
+                nuevosPedidos.push(pedidoLinea);
+                console.log('Pedido agregado:', pedidoLinea);
+                console.log('Estado actual del pedido:', user.pedido, 'Total:', user.total);
+                agregado = true;
             } else {
-                console.log('No se encontró coincidencia en parte:', parte);
+                console.log('Producto no encontrado en menú:', productoBase);
             }
         }
     }
