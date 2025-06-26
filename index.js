@@ -4,6 +4,7 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
 
+
 const client = new Client({ authStrategy: new LocalAuth() });
 let botStartTime = Math.floor(Date.now() / 1000);
 const usuarios = {};
@@ -11,6 +12,7 @@ const usuarios = {};
 const sinonimos = {
     "coca": "coca cola",
     "coca-cola": "coca cola",
+    "empanada": "empanada",
     "empanadas jamon queso": "empanada de jamón y queso",
     "empanadas de jyq": "empanada de jamón y queso",
     "jyq": "jamón y queso",
@@ -23,8 +25,105 @@ const sinonimos = {
     "misiles": "misil",
     "miciles": "misil",
     "dosena": "docena",
-    "dosenas": "docenas"
+    "dosenas": "docenas",
+    "empanadas": "empanada",
+
 };
+
+
+const crypto = require('crypto');
+
+// Configuración de la encriptación
+require('dotenv').config();
+const ALGORITHM = 'aes-256-cbc';
+const SECRET_KEY = process.env.SECRET_KEY; // Cambia esto por una clave secreta de 32 caracteres
+const IV_LENGTH = 16; // Longitud del vector de inicialización para AES
+
+// Función para encriptar la fecha
+function encryptDate(date) {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(SECRET_KEY), iv);
+    let encrypted = cipher.update(date, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return {
+        iv: iv.toString('hex'),
+        encryptedData: encrypted
+    };
+}
+
+// Función para desencriptar la fecha
+function decryptDate(encryptedObj) {
+    try {
+        const iv = Buffer.from(encryptedObj.iv, 'hex');
+        const encryptedText = Buffer.from(encryptedObj.encryptedData, 'hex');
+        const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(SECRET_KEY), iv);
+        let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+    } catch (error) {
+        console.error('❌ Error al desencriptar la fecha:', error);
+        return null;
+    }
+}
+
+// Función para leer la suscripción
+const SUBSCRIPTION_FILE = path.join(__dirname, 'subscription.json');
+
+function readSubscription() {
+    try {
+        if (!fs.existsSync(SUBSCRIPTION_FILE)) {
+            console.error('❌ Archivo subscription.json no encontrado. Creando uno con suscripción vencida.');
+            const defaultDate = new Date(0).toISOString();
+            const encryptedDefault = encryptDate(defaultDate);
+            const defaultSubscription = { expiration: encryptedDefault };
+            fs.writeFileSync(SUBSCRIPTION_FILE, JSON.stringify(defaultSubscription, null, 2));
+            return defaultDate;
+        }
+        const data = fs.readFileSync(SUBSCRIPTION_FILE, 'utf8');
+        const subscription = JSON.parse(data);
+        const decryptedDate = decryptDate(subscription.expiration);
+        return decryptedDate || new Date(0).toISOString();
+    } catch (error) {
+        console.error('❌ Error al leer subscription.json:', error);
+        return new Date(0).toISOString();
+    }
+}
+
+// Función para verificar si la suscripción está activa
+function isSubscriptionActive() {
+    const expirationDateStr = readSubscription();
+    const expirationDate = new Date(expirationDateStr);
+    const now = new Date();
+    return expirationDate > now;
+}
+
+// Función para actualizar la fecha de vencimiento (solo administrador)
+function updateSubscription(newExpirationDate, adminNumber) {
+    try {
+        const dateStr = new Date(newExpirationDate).toISOString();
+        const encryptedDate = encryptDate(dateStr);
+        const newSubscription = { expiration: encryptedDate };
+        fs.writeFileSync(SUBSCRIPTION_FILE, JSON.stringify(newSubscription, null, 2));
+        console.log(`✅ Suscripción actualizada hasta ${newExpirationDate}`);
+        client.sendMessage(adminNumber, `✅ Suscripción renovada hasta ${newExpirationDate}`);
+    } catch (error) {
+        console.error('❌ Error al actualizar subscription.json:', error);
+        client.sendMessage(adminNumber, '❌ Error al renovar la suscripción. Contactá al soporte.');
+    }
+}
+
+// Verificación periódica de la suscripción (cada hora)
+function startSubscriptionCheck() {
+    setInterval(() => {
+        if (!isSubscriptionActive()) {
+            console.error('❌ La suscripción ha vencido. Deteniendo el bot.');
+            client.sendMessage(process.env.ADMIN_NUMBER, '❌ La suscripción ha vencido. Por favor, renovala con !renovar YYYY-MM-DD');
+            process.exit(1);
+        }
+    }, 3600000);
+}
+
+
 
 function normalizarTexto(texto) {
     let limpio = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -139,6 +238,25 @@ client.on('message', async (message) => {
 
     console.log('Texto normalizado:', texto);
     console.log('Productos en menú:', Object.keys(menu.productos));
+
+    // Comando para renovar suscripción (solo administrador)
+    if (texto.startsWith('!renovar')) {
+        console.log(`Comando !renovar recibido. from: ${from}, ADMIN_NUMBER: ${process.env.ADMIN_NUMBER}`);
+        if (from === process.env.ADMIN_NUMBER) {
+            console.log(`Comando válido. Procesando fecha: ${texto.split(' ')[1]}`);
+            const newDate = texto.split(' ')[1];
+            if (!newDate || isNaN(Date.parse(newDate))) {
+                console.log(`Fecha inválida: ${newDate}`);
+                client.sendMessage(from, '⚠️ Formato inválido. Usa: !renovar YYYY-MM-DD');
+                return;
+            }
+            updateSubscription(newDate, from);
+        } else {
+            console.log(`Acceso denegado: ${from} no es administrador`);
+            client.sendMessage(from, '❌ Solo el administrador puede usar este comando.');
+        }
+        return; // Detener el flujo aquí
+    }
 
     if (!usuarios[from]) {
         usuarios[from] = {
@@ -433,13 +551,13 @@ if (!agregado) {
 });
 
 
+// Verificar suscripción antes de inicializar
+if (!isSubscriptionActive()) {
+    console.error('❌ La suscripción ha vencido. Por favor, renovala para usar el bot.');
+    process.exit(1);
+}
 
-// 🔍 Pruebas manuales
-console.log(convertirTextoACantidad("una docena y media de empanadas de jyq")); // debería dar 18
-console.log(convertirTextoACantidad("3 docenas de empanadas de carne"));       // debería dar 36
-console.log(convertirTextoACantidad("media docena de empanadas"));             // debería dar 6
-console.log(convertirTextoACantidad("dos"));                                    // debería dar 2
-console.log(convertirTextoACantidad("7"));                                      // debería dar 7
-console.log(convertirTextoACantidad("cuatro docenas de empanadas"));           // debería dar 48
+// Iniciar verificación periódica
+startSubscriptionCheck();
 
 client.initialize();
