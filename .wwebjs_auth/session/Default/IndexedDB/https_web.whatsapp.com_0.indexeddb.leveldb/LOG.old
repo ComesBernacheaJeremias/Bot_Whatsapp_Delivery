@@ -1,15 +1,15 @@
-2025/06/26-21:10:18.698 1c1c Reusing MANIFEST C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/26-21:10:18.699 1c1c Recovering log #3369
-2025/06/26-21:10:18.756 1c1c Reusing old log C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/003369.log 
-2025/06/26-21:10:22.419 2d48 Level-0 table #3375: started
-2025/06/26-21:10:22.430 2d48 Level-0 table #3375: 455095 bytes OK
-2025/06/26-21:10:22.431 2d48 Delete type=0 #3369
-2025/06/26-21:10:22.431 2d48 Manual compaction at level-0 from '\x00,\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00-\x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/06/26-21:10:23.696 3230 Compacting 1@1 + 2@2 files
-2025/06/26-21:10:23.754 3230 Generated table #3376@1: 47701 keys, 2208452 bytes
-2025/06/26-21:10:23.785 3230 Generated table #3377@1: 22826 keys, 940490 bytes
-2025/06/26-21:10:23.785 3230 Compacted 1@1 + 2@2 files => 3148942 bytes
-2025/06/26-21:10:23.786 3230 compacted to: files[ 0 0 2 0 0 0 0 ]
-2025/06/26-21:10:23.786 3230 Delete type=2 #3371
-2025/06/26-21:10:23.786 3230 Delete type=2 #3372
-2025/06/26-21:10:23.786 3230 Delete type=2 #3375
+2025/06/26-21:42:35.778 408 Reusing MANIFEST C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/26-21:42:35.778 408 Recovering log #3379
+2025/06/26-21:42:35.829 408 Reusing old log C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/003379.log 
+2025/06/26-21:42:39.528 2cfc Level-0 table #3385: started
+2025/06/26-21:42:39.536 2cfc Level-0 table #3385: 391416 bytes OK
+2025/06/26-21:42:39.537 2cfc Delete type=0 #3379
+2025/06/26-21:42:39.537 2cfc Manual compaction at level-0 from '\x00.\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00/\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/26-21:42:40.800 2cfc Compacting 1@1 + 2@2 files
+2025/06/26-21:42:40.857 2cfc Generated table #3386@1: 49924 keys, 2210737 bytes
+2025/06/26-21:42:40.890 2cfc Generated table #3387@1: 24330 keys, 1041451 bytes
+2025/06/26-21:42:40.890 2cfc Compacted 1@1 + 2@2 files => 3252188 bytes
+2025/06/26-21:42:40.891 2cfc compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/06/26-21:42:40.891 2cfc Delete type=2 #3381
+2025/06/26-21:42:40.891 2cfc Delete type=2 #3382
+2025/06/26-21:42:40.891 2cfc Delete type=2 #3385

@@ -11,3 +11,4 @@
 [9/6/2025, 12:12:03] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Florencia Comes | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777839311 | 💳 Método de pago: Transferencia | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 2 hamburguesa(s) - $3000 | 💵 Total: $4500
 [9/6/2025, 12:21:10] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Igna | 📍 Dirección: Yy | 📱 Número: 5493777391037 | 💳 Método de pago: Transferencia | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 1 coca(s) - $700 | 💵 Total: $2200
 [9/6/2025, 06:22:06] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Iii | 📱 Número: 5493777391037 | 💳 Método de pago: Efectivo | 🛍️ 3 hamburguesa(s) - $4500 | 💵 Total: $4500
+[26/6/2025, 09:43:28] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jeremías | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | 🛍️ 3 empanada de carne(s) - $3600 | 💵 Total: $3600

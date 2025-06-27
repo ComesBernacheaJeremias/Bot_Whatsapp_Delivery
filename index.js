@@ -233,7 +233,7 @@ client.on('message', async (message) => {
     const from = message.from;
     const texto = normalizarTexto(message.body);
     const numeroLimpio = from.replace('@c.us', '');
-    console.log(`Mensaje recibido de ${from}: "${texto}", esperandoConfirmacion: ${usuarios[from]?.esperandoConfirmacion || false}`);
+    console.log(`Mensaje recibido de ${from}: "${texto}", esperandoConfirmacion: ${usuarios[from]?.esperandoConfirmacion || false}, esperandoOpcionEntrega: ${usuarios[from]?.esperandoOpcionEntrega || false}`);
 
     // Verificar si la suscripción está activa
     if (!isSubscriptionActive()) {
@@ -285,6 +285,7 @@ client.on('message', async (message) => {
             pedido: [],
             total: 0,
             esperandoConfirmacion: false,
+            esperandoOpcionEntrega: false, // Nuevo estado
             esperandoNombre: false,
             esperandoDireccion: false,
             esperandoMetodoPago: false,
@@ -292,6 +293,7 @@ client.on('message', async (message) => {
             nombre: '',
             direccion: '',
             metodoPago: '',
+            tipoEntrega: '', // Nuevo campo para almacenar "retiro" o "envio"
             ultimoProductoConsultado: null,
             mostrandoResumen: false
         };
@@ -300,15 +302,41 @@ client.on('message', async (message) => {
     const user = usuarios[from];
     const { productos, categorias } = menu;
 
-    // Mover el manejo de confirmación al inicio para evitar que otros bloques lo intercepten
+    // Manejo de la opción de entrega (retiro o envío)
+    if (user.esperandoOpcionEntrega) {
+        console.log(`Opción de entrega esperada. Texto recibido: "${texto}"`);
+        const retiroPhrases = ["retirar", "retiro", "en el local", "voy a buscar"];
+        const envioPhrases = ["envío", "envio", "a domicilio", "delivery"];
+        if (retiroPhrases.some(phrase => texto.includes(phrase))) {
+            console.log(`Opción detectada: retiro`);
+            user.tipoEntrega = 'retiro';
+            user.esperandoOpcionEntrega = false;
+            user.esperandoNombre = true;
+            client.sendMessage(from, '🙋‍♂️ ¿Podés decirme tu *nombre o apellido* para el pedido?');
+            return;
+        } else if (envioPhrases.some(phrase => texto.includes(phrase))) {
+            console.log(`Opción detectada: envío`);
+            user.tipoEntrega = 'envio';
+            user.esperandoOpcionEntrega = false;
+            user.esperandoNombre = true;
+            client.sendMessage(from, '🙋‍♂️ ¿Podés decirme tu *nombre o apellido* para el pedido?');
+            return;
+        } else {
+            console.log(`Respuesta no válida para opción de entrega: "${texto}"`);
+            client.sendMessage(from, '🧐 No entendí. Por favor, responde con "retirar" o "envío".');
+            return;
+        }
+    }
+
+    // Manejo de confirmación
     if (user.esperandoConfirmacion) {
         console.log(`Confirmación esperada. Texto recibido: "${texto}"`);
         const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien"];
         if (confirmPhrases.some(phrase => texto === phrase || texto.includes(phrase))) {
             console.log(`Confirmación detectada: "${texto}" coincide con alguna frase válida`);
-            client.sendMessage(from, '🙋‍♂️ ¿Podés decirme tu *nombre o apellido*?');
             user.esperandoConfirmacion = false;
-            user.esperandoNombre = true;
+            user.esperandoOpcionEntrega = true;
+            client.sendMessage(from, '📍 ¿Querés retirar el pedido en el local o preferís que lo enviemos a tu dirección? Responde con "retirar" o "envío".');
             return;
         } else if (["no", "cancelar", "cancelo", "cancelame"].some(phrase => texto === phrase || texto.includes(phrase))) {
             console.log(`Cancelación detectada: "${texto}"`);
@@ -324,17 +352,23 @@ client.on('message', async (message) => {
 
     if (user.esperandoNombre) {
         user.nombre = message.body.trim();
-        client.sendMessage(from, '📍 ¿Cuál es tu *dirección* para el envío?');
-        user.esperandoNombre = false;
-        user.esperandoDireccion = true;
+        if (user.tipoEntrega === 'envio') {
+            user.esperandoNombre = false;
+            user.esperandoDireccion = true;
+            client.sendMessage(from, '📍 ¿Cuál es tu *dirección* para el envío?');
+        } else {
+            user.esperandoNombre = false;
+            user.esperandoMetodoPago = true;
+            client.sendMessage(from, '💳 ¿Cómo vas a pagar? Escribe *efectivo* o *transferencia*.');
+        }
         return;
     }
 
     if (user.esperandoDireccion) {
         user.direccion = message.body.trim();
-        client.sendMessage(from, '💳 ¿Cómo vas a pagar? Escribe *efectivo* o *transferencia*.');
         user.esperandoDireccion = false;
         user.esperandoMetodoPago = true;
+        client.sendMessage(from, '💳 ¿Cómo vas a pagar? Escribe *efectivo* o *transferencia*.');
         return;
     }
 
@@ -344,9 +378,13 @@ client.on('message', async (message) => {
             user.metodoPago = 'efectivo';
             user.esperandoMetodoPago = false;
 
-            const resumen = `🛎️ *Nuevo pedido confirmado*\n👤 Nombre: ${user.nombre}\n📍 Dirección: ${user.direccion}\n📱 Número: ${numeroLimpio}\n💳 Método de pago: Efectivo\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
+            const resumen = `🛎️ *Nuevo pedido confirmado (${user.tipoEntrega === 'retiro' ? 'retiro en local' : 'envío'})*\n👤 Nombre: ${user.nombre}\n${user.tipoEntrega === 'envio' ? `📍 Dirección: ${user.direccion}\n` : ''}📱 Número: ${numeroLimpio}\n💳 Método de pago: Efectivo\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
 
-            client.sendMessage(from, '✅ ¡Pedido confirmado! Lo estamos preparando 🍽️');
+            const mensajeCliente = user.tipoEntrega === 'retiro'
+                ? `✅ ¡Pedido confirmado para retirar en La Esquina Food! Estará listo en aproximadamente 45 minutos, te avisaremos si está antes. Te esperamos en Av. Ejemplo 123. 🍽️`
+                : `✅ ¡Pedido confirmado para envío a ${user.direccion}! Lo estamos preparando. 🍽️`;
+
+            client.sendMessage(from, mensajeCliente);
 
             fs.appendFileSync('pedidos.txt', `[${new Date().toLocaleString()}] ${resumen.replace(/\n/g, ' | ')}\n`);
 
@@ -379,9 +417,13 @@ client.on('message', async (message) => {
                 return;
             }
 
-            const resumen = `🛎️ *Nuevo pedido confirmado*\n👤 Nombre: ${user.nombre}\n📍 Dirección: ${user.direccion}\n📱 Número: ${numeroLimpio}\n💳 Método de pago: Transferencia\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
+            const resumen = `🛎️ *Nuevo pedido confirmado (${user.tipoEntrega === 'retiro' ? 'retiro en local' : 'envío'})*\n👤 Nombre: ${user.nombre}\n${user.tipoEntrega === 'envio' ? `📍 Dirección: ${user.direccion}\n` : ''}📱 Número: ${numeroLimpio}\n💳 Método de pago: Transferencia\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
 
-            client.sendMessage(from, '✅ ¡Comprobante recibido! Pedido confirmado, lo estamos preparando 🍽️');
+            const mensajeCliente = user.tipoEntrega === 'retiro'
+                ? `✅ ¡Comprobante recibido! Pedido confirmado para retirar en La Esquina Food. Estará listo en aproximadamente 45 minutos, te avisaremos si está antes. Te esperamos en Av. Ejemplo 123. 🍽️`
+                : `✅ ¡Comprobante recibido! Pedido confirmado para envío a ${user.direccion}. Lo estamos preparando. 🍽️`;
+
+            client.sendMessage(from, mensajeCliente);
 
             fs.appendFileSync('pedidos.txt', `[${new Date().toLocaleString()}] ${resumen.replace(/\n/g, ' | ')}\n`);
 
@@ -469,9 +511,8 @@ client.on('message', async (message) => {
         }
     }
 
-    // Manejo de frases como "no", "eso es todo", etc., para mostrar el total
     if (["no", "nono", "eso es todo", "ya está", "ya esta", "nada más", "nada mas"].some(f => texto.includes(f))) {
-        if (user.pedido.length > 0 && !user.esperandoConfirmacion && !user.esperandoNombre && !user.esperandoDireccion && !user.esperandoMetodoPago && !user.esperandoComprobante) {
+        if (user.pedido.length > 0 && !user.esperandoConfirmacion && !user.esperandoOpcionEntrega && !user.esperandoNombre && !user.esperandoDireccion && !user.esperandoMetodoPago && !user.esperandoComprobante) {
             client.sendMessage(from, `🧾 Perfecto. Tu pedido es:\n${user.pedido.join('\n')}\n\n💵 Total: $${user.total}\n¿Querés confirmar o agregar algo más?`);
             user.esperandoConfirmacion = true;
             console.log(`Estado actualizado: esperandoConfirmacion = ${user.esperandoConfirmacion}`);
@@ -601,3 +642,6 @@ if (!isSubscriptionActive()) {
 startSubscriptionCheck();
 
 client.initialize();
+
+//dasdkjaklsdjaklsdjklad
+//asdasdasdasdasda
