@@ -13,10 +13,10 @@ const sinonimos = {
     "coca": "coca cola",
     "coca-cola": "coca cola",
     "empanada": "empanada",
-    "empanadas jamon queso": "empanada de jamón y queso",
+    "empanadas de jamon queso": "empanada de jamón y queso",
     "empanadas de jyq": "empanada de jamón y queso",
     "jyq": "jamón y queso",
-    "empanadas carne": "empanada de carne",
+    "empanadas de carne": "empanada de carne",
     "empanada de jamon y queso": "empanada de jamón y queso",
     "hamburguesa doble": "hamburguesa doble carne",
     "papas fritas": "papas",
@@ -231,15 +231,36 @@ client.on('message', async (message) => {
     if (message.timestamp < botStartTime) return;
 
     const from = message.from;
-    let texto = normalizarTexto(message.body);
+    const texto = normalizarTexto(message.body);
     const numeroLimpio = from.replace('@c.us', '');
+    console.log(`Mensaje recibido de ${from}: "${texto}", esperandoConfirmacion: ${usuarios[from]?.esperandoConfirmacion || false}`);
+
+    // Verificar si la suscripción está activa
+    if (!isSubscriptionActive()) {
+        console.log(`❌ Suscripción vencida. Modo restringido activado. Mensaje recibido de ${from}: ${texto}`);
+        if (from === process.env.ADMIN_NUMBER && texto.startsWith('!renovar')) {
+            console.log(`Comando !renovar recibido. Procesando fecha: ${texto.split(' ')[1]}`);
+            const newDate = texto.split(' ')[1];
+            if (!newDate || isNaN(Date.parse(newDate))) {
+                console.log(`Fecha inválida: ${newDate}`);
+                client.sendMessage(from, '⚠️ Formato inválido. Usa: !renovar YYYY-MM-DD');
+                return;
+            }
+            updateSubscription(newDate, from);
+        } else {
+            console.log(`Acceso denegado: ${from} no es administrador o mensaje inválido`);
+            client.sendMessage(from, '❌ La suscripción ha vencido. Solo el administrador puede renovarla con !renovar YYYY-MM-DD.');
+        }
+        return;
+    }
+
+    console.log('✅ Suscripción activa. Procesando mensaje:', texto);
     menu = cargarMenuDesdeExcel();
     const config = leerConfig();
 
     console.log('Texto normalizado:', texto);
     console.log('Productos en menú:', Object.keys(menu.productos));
 
-    // Comando para renovar suscripción (solo administrador)
     if (texto.startsWith('!renovar')) {
         console.log(`Comando !renovar recibido. from: ${from}, ADMIN_NUMBER: ${process.env.ADMIN_NUMBER}`);
         if (from === process.env.ADMIN_NUMBER) {
@@ -255,7 +276,7 @@ client.on('message', async (message) => {
             console.log(`Acceso denegado: ${from} no es administrador`);
             client.sendMessage(from, '❌ Solo el administrador puede usar este comando.');
         }
-        return; // Detener el flujo aquí
+        return;
     }
 
     if (!usuarios[from]) {
@@ -279,64 +300,24 @@ client.on('message', async (message) => {
     const user = usuarios[from];
     const { productos, categorias } = menu;
 
-    const palabrasMenu = [
-        'menu', 'menú', 'lista de precios', 'carta', 'que tenes', 'qué tenés', 'quiero ver el menu', 'quiero ver el menú',
-        'quiero ver la carta', 'quiero ver la lista de precios', 'quiero ver la lista de productos', 'pasame el menu',
-        'pasame el menú', 'mandame el menu', 'mandame el menú', 'me pasas el menu', 'me pasas el menú', 'me mandas el menu',
-        'me mandas el menú', 'me podes pasar el menu', 'me podes pasar el menú', 'me puedes pasar el menu', 'me puedes pasar el menú',
-        'me podés pasar el menu', 'me podés pasar el menú', 'me puedes pasar el menu', 'me puedes pasar el menú',
-        'que hay', 'qué hay', 'lista de productos', 'ver menu', 'ver menú', 'mostrame el menu', 'mostrame el menú',
-        'me puede pasar el menu', 'me puede pasar el menú', 'pasame la lista deprecios', 'pasame la lista de precios',
-        'pasame la lista de presio', 'pasame la lista de precio'
-    ];
-
-    if (palabrasMenu.some(p => texto.includes(p))) {
-        const rutaPDF = path.join(__dirname, 'menu.pdf');
-        if (fs.existsSync(rutaPDF)) {
-            try {
-                const media = MessageMedia.fromFilePath(rutaPDF);
-                await client.sendMessage(from, media, { caption: '📋 Aquí tenés el menú de *La Esquina Food*. ¡Echale un vistazo! 😋' });
-            } catch (error) {
-                console.error('❌ Error al enviar el PDF:', error);
-                client.sendMessage(from, '❌ Hubo un error al enviar el menú. Por favor, intentá de nuevo más tarde.');
-            }
-        } else {
-            console.warn('⚠️ El archivo menu.pdf no fue encontrado en la carpeta assets.');
-            client.sendMessage(from, '❌ No encontramos el menú en PDF. Podés pedir detalles de los productos escribiendo, por ejemplo, "cuánto sale la hamburguesa".');
-        }
-        return;
-    }
-
-    const palabrasPreguntas = [
-        'cuanto', 'cuánto', 'precio', 'sale', 'cuesta', 'vale', 'valor', 'cuanto esta', 'cuanto está', 'cuánto esta', 'cuánto está',
-        'cuanto sale', 'cuanto cuesta', 'cuanto vale', 'cuánto sale', 'cuánto cuesta', 'cuánto vale'
-    ];
-
-    const palabrasTotal = [
-        'total', 'cuanto es', 'cuánto es', 'resumen', 'cuanto debo', 'cuánto debo', 'cuanto te debo', 'cuánto te debo',
-        'total pedido', 'cuánto es el total', 'cuanto seria', 'cuanto sería', 'cual es el total', 'cuanto sale todo', 'cuánto sale todo'
-    ];
-
-    if (["no", "nono", "eso es todo", "ya está", "ya esta", "nada más", "nada mas"].some(f => texto.includes(f))) {
-        if (user.pedido.length > 0 && !user.esperandoConfirmacion && !user.esperandoNombre && !user.esperandoDireccion && !user.esperandoMetodoPago && !user.esperandoComprobante) {
-            client.sendMessage(from, `🧾 Perfecto. Tu pedido es:\n${user.pedido.join('\n')}\n\n💵 Total: $${user.total}\n¿Confirmás el pedido? (sí/no)`);
-            user.esperandoConfirmacion = true;
-            return;
-        }
-    }
-
+    // Mover el manejo de confirmación al inicio para evitar que otros bloques lo intercepten
     if (user.esperandoConfirmacion) {
-        if (["si", "sí", "confirmar", "confirmo"].includes(texto)) {
+        console.log(`Confirmación esperada. Texto recibido: "${texto}"`);
+        const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien"];
+        if (confirmPhrases.some(phrase => texto === phrase || texto.includes(phrase))) {
+            console.log(`Confirmación detectada: "${texto}" coincide con alguna frase válida`);
             client.sendMessage(from, '🙋‍♂️ ¿Podés decirme tu *nombre o apellido*?');
             user.esperandoConfirmacion = false;
             user.esperandoNombre = true;
             return;
-        } else if (["no", "cancelar", "cancelo", "cancelame"].includes(texto)) {
+        } else if (["no", "cancelar", "cancelo", "cancelame"].some(phrase => texto === phrase || texto.includes(phrase))) {
+            console.log(`Cancelación detectada: "${texto}"`);
             client.sendMessage(from, '❌ Pedido cancelado. Si querés volver a pedir, escribí el producto.');
             delete usuarios[from];
             return;
         } else {
-            client.sendMessage(from, '🧐 No entendí. ¿Confirmás el pedido? (sí/no)');
+            console.log(`Respuesta no válida para confirmación: "${texto}"`);
+            client.sendMessage(from, '🧐 No entendí. ¿Querés confirmar el pedido? Responde con "quiero confirmar", "nada más", "eso es todo", "confirmar" o "está bien".');
             return;
         }
     }
@@ -419,15 +400,38 @@ client.on('message', async (message) => {
         }
     }
 
-    if (palabrasTotal.some(p => texto.includes(p))) {
-        if (user.pedido.length > 0) {
-            client.sendMessage(from, `🧾 Tu pedido actual es:\n${user.pedido.join('\n')}\n\n💵 Total: $${user.total}\n¿Querés confirmar o agregar algo más?`);
-            return;
+    const palabrasMenu = [
+        'menu', 'menú', 'lista de precios', 'carta', 'que tenes', 'qué tenés', 'quiero ver el menu', 'quiero ver el menú',
+        'quiero ver la carta', 'quiero ver la lista de precios', 'quiero ver la lista de productos', 'pasame el menu',
+        'pasame el menú', 'mandame el menu', 'mandame el menú', 'me pasas el menu', 'me pasas el menú', 'me mandas el menu',
+        'me mandas el menú', 'me podes pasar el menu', 'me podes pasar el menú', 'me puedes pasar el menu', 'me puedes pasar el menú',
+        'me podés pasar el menu', 'me podés pasar el menú', 'me puedes pasar el menu', 'me puedes pasar el menú',
+        'que hay', 'qué hay', 'lista de productos', 'ver menu', 'ver menú', 'mostrame el menu', 'mostrame el menú',
+        'me puede pasar el menu', 'me puede pasar el menú', 'pasame la lista deprecios', 'pasame la lista de precios',
+        'pasame la lista de presio', 'pasame la lista de precio'
+    ];
+
+    if (palabrasMenu.some(p => texto.includes(p))) {
+        const rutaPDF = path.join(__dirname, 'menu.pdf');
+        if (fs.existsSync(rutaPDF)) {
+            try {
+                const media = MessageMedia.fromFilePath(rutaPDF);
+                await client.sendMessage(from, media, { caption: '📋 Aquí tenés el menú de *La Esquina Food*. ¡Echale un vistazo! 😋' });
+            } catch (error) {
+                console.error('❌ Error al enviar el PDF:', error);
+                client.sendMessage(from, '❌ Hubo un error al enviar el menú. Por favor, intentá de nuevo más tarde.');
+            }
         } else {
-            client.sendMessage(from, '🛒 No tenés ningún pedido en curso. ¿Qué querés pedir?');
-            return;
+            console.warn('⚠️ El archivo menu.pdf no fue encontrado en la carpeta assets.');
+            client.sendMessage(from, '❌ No encontramos el menú en PDF. Podés pedir detalles de los productos escribiendo, por ejemplo, "cuánto sale la hamburguesa".');
         }
+        return;
     }
+
+    const palabrasPreguntas = [
+        'cuanto', 'cuánto', 'precio', 'sale', 'cuesta', 'vale', 'valor', 'cuanto esta', 'cuanto está', 'cuánto esta', 'cuánto está',
+        'cuanto sale', 'cuanto cuesta', 'cuanto vale', 'cuánto sale', 'cuánto cuesta', 'cuánto vale'
+    ];
 
     if (palabrasPreguntas.some(p => texto.includes(p))) {
         let productosEncontrados = [];
@@ -443,6 +447,34 @@ client.on('message', async (message) => {
             return;
         } else {
             client.sendMessage(from, '🤔 No encontré el producto que mencionaste. ¿Podés especificar mejor? Por ejemplo: "cuánto sale la hamburguesa"');
+            return;
+        }
+    }
+
+    const palabrasTotal = [
+        'total', 'cuanto es', 'cuánto es', 'resumen', 'cuanto debo', 'cuánto debo', 'cuanto te debo', 'cuánto te debo',
+        'total pedido', 'cuánto es el total', 'cuanto seria', 'cuanto sería', 'cual es el total', 'cuanto sale todo', 'cuánto sale todo'
+    ];
+
+    if (palabrasTotal.some(p => texto.includes(p))) {
+        console.log(`Procesando total. Pedido: ${user.pedido.length > 0 ? user.pedido.join(', ') : 'vacío'}, Estado esperandoConfirmacion: ${user.esperandoConfirmacion}`);
+        if (user.pedido.length > 0) {
+            client.sendMessage(from, `🧾 Tu pedido actual es:\n${user.pedido.join('\n')}\n\n💵 Total: $${user.total}\n¿Querés confirmar o agregar algo más?`);
+            user.esperandoConfirmacion = true;
+            console.log(`Estado actualizado: esperandoConfirmacion = ${user.esperandoConfirmacion}`);
+            return;
+        } else {
+            client.sendMessage(from, '🛒 No tenés ningún pedido en curso. ¿Qué querés pedir?');
+            return;
+        }
+    }
+
+    // Manejo de frases como "no", "eso es todo", etc., para mostrar el total
+    if (["no", "nono", "eso es todo", "ya está", "ya esta", "nada más", "nada mas"].some(f => texto.includes(f))) {
+        if (user.pedido.length > 0 && !user.esperandoConfirmacion && !user.esperandoNombre && !user.esperandoDireccion && !user.esperandoMetodoPago && !user.esperandoComprobante) {
+            client.sendMessage(from, `🧾 Perfecto. Tu pedido es:\n${user.pedido.join('\n')}\n\n💵 Total: $${user.total}\n¿Querés confirmar o agregar algo más?`);
+            user.esperandoConfirmacion = true;
+            console.log(`Estado actualizado: esperandoConfirmacion = ${user.esperandoConfirmacion}`);
             return;
         }
     }
@@ -479,19 +511,16 @@ client.on('message', async (message) => {
         agregado = true;
     }
 
-    // Reemplazar la parte del código donde procesas los pedidos
-if (!agregado) {
-        // Expresión regular mejorada para capturar múltiples productos en el mensaje
+    if (!agregado) {
         const cantidadRegex = new RegExp(
             `(?:quiero|dame|pedime|traeme|puede ser)?\\s*` +
             `(?:(una docena y media|dos docenas y media|una docena|media docena|\\d+ docenas|\\d+|una|un|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|dieciseis|diecisiete|dieciocho|diecinueve|veinte)\\s*(?:de)?)?\\s*` +
             `(${nombresProductosRegex})` +
-            `(?:\\s|$|s)`, 'ig' // 'i' para ignorar mayúsculas, 'g' para capturar todas las coincidencias
+            `(?:\\s|$|s)`, 'ig'
         );
 
         console.log('Procesando mensaje completo:', texto);
 
-        // Buscar todas las coincidencias en el mensaje
         let matches = [...texto.matchAll(cantidadRegex)];
         console.log('Coincidencias encontradas:', matches);
 
@@ -519,7 +548,17 @@ if (!agregado) {
                 console.log('Estado actual del pedido:', user.pedido, 'Total:', user.total);
                 agregado = true;
             } else {
-                console.log('Producto no encontrado en menú:', productoBase);
+                const categoria = productoBase.split(' de ')[0];
+                if (categorias[categoria]) {
+                    let respuesta = `📦 Variantes de *${categoria}*:\n`;
+                    categorias[categoria].forEach(item => {
+                        respuesta += `💡 *${item.nombre}*: $${item.precio}\n`;
+                    });
+                    respuesta += `\nPor favor, especificá qué tipo de ${categoria} querés (por ejemplo, "${categoria} de carne").`;
+                    client.sendMessage(from, respuesta);
+                    agregado = true;
+                    return;
+                }
             }
         }
     }
@@ -553,9 +592,10 @@ if (!agregado) {
 
 // Verificar suscripción antes de inicializar
 if (!isSubscriptionActive()) {
-    console.error('❌ La suscripción ha vencido. Por favor, renovala para usar el bot.');
-    process.exit(1);
+    console.warn('⚠️ La suscripción ha vencido. El bot está en modo restringido. Solo el administrador puede usar !renovar.');
+    // No hacemos process.exit(1) para permitir el modo restringido
 }
+
 
 // Iniciar verificación periódica
 startSubscriptionCheck();

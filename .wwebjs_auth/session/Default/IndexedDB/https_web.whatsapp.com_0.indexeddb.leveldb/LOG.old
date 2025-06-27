@@ -1,23 +1,15 @@
-2025/06/25-20:19:55.642 3448 Reusing MANIFEST C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2025/06/25-20:19:55.643 3448 Recovering log #3308
-2025/06/25-20:19:55.677 3448 Reusing old log C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/003308.log 
-2025/06/25-20:19:55.678 3448 Delete type=2 #3306
-2025/06/25-20:19:57.120 338c Level-0 table #3314: started
-2025/06/25-20:19:57.132 338c Level-0 table #3314: 241503 bytes OK
-2025/06/25-20:19:57.133 338c Delete type=0 #3308
-2025/06/25-20:19:57.133 338c Manual compaction at level-0 from '\x00\x1f\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00 \x00\x00\x00' @ 0 : 0; will stop at '\x00\x1f\x00\x00\x05' @ 7783256 : 1
-2025/06/25-20:19:57.133 338c Compacting 1@0 + 2@1 files
-2025/06/25-20:19:57.305 338c Generated table #3315@0: 81439 keys, 2257586 bytes
-2025/06/25-20:19:57.320 338c Generated table #3316@0: 5670 keys, 119691 bytes
-2025/06/25-20:19:57.320 338c Compacted 1@0 + 2@1 files => 2377277 bytes
-2025/06/25-20:19:57.321 338c compacted to: files[ 0 2 1 0 0 0 0 ]
-2025/06/25-20:19:57.321 338c Delete type=2 #3314
-2025/06/25-20:19:57.322 338c Manual compaction at level-0 from '\x00\x1f\x00\x00\x05' @ 7783256 : 1 .. '\x00 \x00\x00\x00' @ 0 : 0; will stop at (end)
-2025/06/25-20:21:31.520 2018 Compacting 1@1 + 1@2 files
-2025/06/25-20:21:31.576 2018 Generated table #3317@1: 30213 keys, 1836786 bytes
-2025/06/25-20:21:31.576 2018 Compacted 1@1 + 1@2 files => 1836786 bytes
-2025/06/25-20:21:31.576 2018 compacted to: files[ 0 1 1 0 0 0 0 ]
-2025/06/25-20:21:31.577 2018 Delete type=2 #3256
-2025/06/25-20:21:31.577 2018 Delete type=2 #3310
-2025/06/25-20:21:31.577 2018 Delete type=2 #3311
-2025/06/25-20:21:31.577 2018 Delete type=2 #3315
+2025/06/26-21:10:18.698 1c1c Reusing MANIFEST C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/26-21:10:18.699 1c1c Recovering log #3369
+2025/06/26-21:10:18.756 1c1c Reusing old log C:\Users\Corcho\Documents\Whatsapp_Bot\.wwebjs_auth\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/003369.log 
+2025/06/26-21:10:22.419 2d48 Level-0 table #3375: started
+2025/06/26-21:10:22.430 2d48 Level-0 table #3375: 455095 bytes OK
+2025/06/26-21:10:22.431 2d48 Delete type=0 #3369
+2025/06/26-21:10:22.431 2d48 Manual compaction at level-0 from '\x00,\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00-\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/26-21:10:23.696 3230 Compacting 1@1 + 2@2 files
+2025/06/26-21:10:23.754 3230 Generated table #3376@1: 47701 keys, 2208452 bytes
+2025/06/26-21:10:23.785 3230 Generated table #3377@1: 22826 keys, 940490 bytes
+2025/06/26-21:10:23.785 3230 Compacted 1@1 + 2@2 files => 3148942 bytes
+2025/06/26-21:10:23.786 3230 compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/06/26-21:10:23.786 3230 Delete type=2 #3371
+2025/06/26-21:10:23.786 3230 Delete type=2 #3372
+2025/06/26-21:10:23.786 3230 Delete type=2 #3375

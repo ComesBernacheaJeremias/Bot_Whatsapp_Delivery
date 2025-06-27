@@ -1,3 +1,6 @@
+//ESTO ES PARA DESENCRIPTAR LA FECHA DE VENCIMIENTO DEL ARCHIVO subscription.json
+
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -5,6 +8,7 @@ const crypto = require('crypto');
 const ALGORITHM = 'aes-256-cbc';
 const SECRET_KEY = 'jeremiascomesbernachea1234567890'; // Usa la misma clave que en init_subscription.js
 const IV_LENGTH = 16;
+
 
 // Validar SECRET_KEY
 if (!SECRET_KEY || SECRET_KEY.length !== 32) {
