@@ -12,3 +12,11 @@
 [9/6/2025, 12:21:10] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Igna | 📍 Dirección: Yy | 📱 Número: 5493777391037 | 💳 Método de pago: Transferencia | 🛍️ 1 hamburguesa(s) - $1500 | 🛍️ 1 coca(s) - $700 | 💵 Total: $2200
 [9/6/2025, 06:22:06] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jere | 📍 Dirección: Iii | 📱 Número: 5493777391037 | 💳 Método de pago: Efectivo | 🛍️ 3 hamburguesa(s) - $4500 | 💵 Total: $4500
 [26/6/2025, 09:43:28] 🛎️ *Nuevo pedido confirmado* | 👤 Nombre: Jeremías | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | 🛍️ 3 empanada de carne(s) - $3600 | 💵 Total: $3600
+[1/7/2025, 08:29:58] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: Jeremías | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: En 45 minutos | 🛍️ 18 coca(s) - $12600 | 💵 Total: $12600
+[1/7/2025, 08:40:15] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: Lo | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: En 45 minutos | 🛍️ 12 coca(s) - $8400 | 💵 Total: $8400
+[1/7/2025, 08:41:17] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: K | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 21:30 | 🛍️ 3 coca(s) - $2100 | 💵 Total: $2100
+[1/7/2025, 08:47:47] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: J | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 21:30 | 🛍️ 12 empanada de carne(s) - $14400 | 💵 Total: $14400
+[1/7/2025, 08:52:20] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: Jeremías | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 22:00 | 🛍️ 3 coca(s) - $2100 | 💵 Total: $2100
+[1/7/2025, 08:57:03] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: jeremias | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 23:00 | 🛍️ 12 coca(s) - $8400 | 💵 Total: $8400
+[1/7/2025, 09:05:46] 🛎️ *Nuevo pedido confirmado (envío)* | 👤 Nombre: s | 📍 Dirección: Ayacucho 1016 | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 22:30 | 🛍️ 12 coca(s) - $8400 | 💵 Total: $8400
+[1/7/2025, 09:09:09] 🛎️ *Nuevo pedido confirmado (retiro en local)* | 👤 Nombre: jeremias | 📱 Número: 5493777822128 | 💳 Método de pago: Efectivo | ⏰ Horario: Para las 22:30 | 🛍️ 12 coca(s) - $8400 | 💵 Total: $8400

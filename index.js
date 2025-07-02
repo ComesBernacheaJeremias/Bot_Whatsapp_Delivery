@@ -285,15 +285,17 @@ client.on('message', async (message) => {
             pedido: [],
             total: 0,
             esperandoConfirmacion: false,
-            esperandoOpcionEntrega: false, // Nuevo estado
+            esperandoOpcionEntrega: false,
             esperandoNombre: false,
             esperandoDireccion: false,
             esperandoMetodoPago: false,
             esperandoComprobante: false,
+            esperandoHorario: false, // Nuevo estado
             nombre: '',
             direccion: '',
             metodoPago: '',
-            tipoEntrega: '', // Nuevo campo para almacenar "retiro" o "envio"
+            tipoEntrega: '',
+            horarioEntrega: '', // Nuevo campo para almacenar el horario
             ultimoProductoConsultado: null,
             mostrandoResumen: false
         };
@@ -377,25 +379,10 @@ client.on('message', async (message) => {
         if (['efectivo', 'cash', 'en efectivo'].includes(metodo)) {
             user.metodoPago = 'efectivo';
             user.esperandoMetodoPago = false;
-
-            const resumen = `🛎️ *Nuevo pedido confirmado (${user.tipoEntrega === 'retiro' ? 'retiro en local' : 'envío'})*\n👤 Nombre: ${user.nombre}\n${user.tipoEntrega === 'envio' ? `📍 Dirección: ${user.direccion}\n` : ''}📱 Número: ${numeroLimpio}\n💳 Método de pago: Efectivo\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
-
-            const mensajeCliente = user.tipoEntrega === 'retiro'
-                ? `✅ ¡Pedido confirmado para retirar en La Esquina Food! Estará listo en aproximadamente 45 minutos, te avisaremos si está antes. Te esperamos en Av. Ejemplo 123. 🍽️`
-                : `✅ ¡Pedido confirmado para envío a ${user.direccion}! Lo estamos preparando. 🍽️`;
-
-            client.sendMessage(from, mensajeCliente);
-
-            fs.appendFileSync('pedidos.txt', `[${new Date().toLocaleString()}] ${resumen.replace(/\n/g, ' | ')}\n`);
-
-            const chats = await client.getChats();
-            const grupo = chats.find(c => c.isGroup && c.name === 'Bot_chat');
-            if (grupo) {
-                await grupo.sendMessage(resumen);
-            }
-
-            delete usuarios[from];
+            user.esperandoHorario = true; // Activar estado para esperar horario
+            client.sendMessage(from, '⏰ Tu pedido estará listo en aproximadamente *45 minutos*. ¿Querés que lo preparemos para este tiempo o preferís un *horario específico*?');
             return;
+
         } else if (['transferencia', 'transf', 'por transferencia', 'te transfiero', 'ahi te transfiero', 'ahí te transfiero', 'x transferencia', 'transferir', 'te voy a transferir', 'x transf'].includes(metodo)) {
             user.metodoPago = 'transferencia';
             user.esperandoMetodoPago = false;
@@ -417,29 +404,90 @@ client.on('message', async (message) => {
                 return;
             }
 
-            const resumen = `🛎️ *Nuevo pedido confirmado (${user.tipoEntrega === 'retiro' ? 'retiro en local' : 'envío'})*\n👤 Nombre: ${user.nombre}\n${user.tipoEntrega === 'envio' ? `📍 Dirección: ${user.direccion}\n` : ''}📱 Número: ${numeroLimpio}\n💳 Método de pago: Transferencia\n${user.pedido.join('\n')}\n💵 Total: $${user.total}`;
-
-            const mensajeCliente = user.tipoEntrega === 'retiro'
-                ? `✅ ¡Comprobante recibido! Pedido confirmado para retirar en La Esquina Food. Estará listo en aproximadamente 45 minutos, te avisaremos si está antes. Te esperamos en Av. Ejemplo 123. 🍽️`
-                : `✅ ¡Comprobante recibido! Pedido confirmado para envío a ${user.direccion}. Lo estamos preparando. 🍽️`;
-
-            client.sendMessage(from, mensajeCliente);
-
-            fs.appendFileSync('pedidos.txt', `[${new Date().toLocaleString()}] ${resumen.replace(/\n/g, ' | ')}\n`);
-
-            const chats = await client.getChats();
-            const grupo = chats.find(c => c.isGroup && c.name === 'Bot_chat');
-            if (grupo) {
-                await grupo.sendMessage(resumen);
-                await grupo.sendMessage(new MessageMedia(media.mimetype, media.data, `comprobante_${numeroLimpio}_${Date.now()}.png`));
-            }
-
-            delete usuarios[from];
+            user.esperandoComprobante = false;
+            user.esperandoHorario = true; // Activar estado para esperar horario
+            client.sendMessage(from, '⏰ Tu pedido estará listo en aproximadamente *45 minutos*. ¿Querés que lo preparemos para este tiempo o preferís un *horario específico*?');
             return;
         } else {
             client.sendMessage(from, '📸 Por favor, enviá el comprobante de pago (imagen o archivo).');
             return;
         }
+    }
+
+
+    if (user.esperandoHorario) {
+        const respuestaHorario = texto.trim().toLowerCase();
+        console.log(`Horario recibido: "${respuestaHorario}"`);
+
+        // Lista de frases que confirman los 45 minutos
+        const confirmHorarioPhrases = [
+            "me parece bien", "está bien", "esta bien", "no hay problema", "perfecto",
+            "ok", "sí", "si", "dale", "todo bien"
+        ];
+
+        // Expresión regular para detectar horarios específicos y frases naturales
+        const horarioRegex = /^(?:.*?(?:para las|a las|me pod[ée]s preparar para las|quiero que est[ée] para las|preparalo para las|preparame para las|puede ser para las|me pueden hacer para las|me preparan para las)\s*)?(\d{1,2})(?::(\d{2}))?(?:\s*(?:horas|hs|h)?(?:\s*por favor)?)?(?:\s*[\?!]?)?$/i;
+
+        if (confirmHorarioPhrases.some(phrase => respuestaHorario.includes(phrase))) {
+            user.horarioEntrega = '45 minutos';
+        } else {
+            const matchHorario = respuestaHorario.match(horarioRegex);
+            if (matchHorario || ['en 45 minutos', '45 minutos', 'ahora', 'listo'].some(h => respuestaHorario.includes(h))) {
+                if (['en 45 minutos', '45 minutos', 'ahora', 'listo'].some(h => respuestaHorario.includes(h))) {
+                    user.horarioEntrega = '45 minutos';
+                } else {
+                    const hora = parseInt(matchHorario[1]);
+                    const minutos = matchHorario[2] ? matchHorario[2] : '00'; // Si no hay minutos, usar "00"
+                    if (hora >= 0 && hora <= 23) {
+                        user.horarioEntrega = `${hora.toString().padStart(2, '0')}:${minutos}`;
+                    } else {
+                        client.sendMessage(from, '🧐 El horario ingresado no es válido. Por favor, especificá un horario como "22", "22:00", "puede ser para las 22" o "en 45 minutos", o confirmá con "está bien" o "perfecto".');
+                        return;
+                    }
+                }
+            } else {
+                client.sendMessage(from, '🧐 No entendí. Por favor, especificá un horario como "22", "22:00", "puede ser para las 22" o "en 45 minutos", o confirmá con "está bien" o "perfecto".');
+                return;
+            }
+        }
+
+        user.esperandoHorario = false;
+
+        // Generar el resumen del pedido
+        const resumen = `🛎️ *Nuevo pedido confirmado (${user.tipoEntrega === 'retiro' ? 'retiro en local' : 'envío'})*\n` +
+                        `👤 Nombre: ${user.nombre}\n` +
+                        `${user.tipoEntrega === 'envio' ? `📍 Dirección: ${user.direccion}\n` : ''}` +
+                        `📱 Número: ${numeroLimpio}\n` +
+                        `💳 Método de pago: ${user.metodoPago.charAt(0).toUpperCase() + user.metodoPago.slice(1)}\n` +
+                        `⏰ Horario: ${user.horarioEntrega === '45 minutos' ? 'En 45 minutos' : `Para las ${user.horarioEntrega}`}\n` +
+                        `${user.pedido.join('\n')}\n` +
+                        `💵 Total: $${user.total}`;
+
+        // Mensaje al cliente
+        const mensajeCliente = user.tipoEntrega === 'retiro'
+            ? `✅ ¡Pedido confirmado para retirar en La Esquina Food! Estará listo ${user.horarioEntrega === '45 minutos' ? 'en aproximadamente 45 minutos' : `para las ${user.horarioEntrega}`}. Te esperamos en Av. Ejemplo 123. 🍽️`
+            : `✅ ¡Pedido confirmado para envío a ${user.direccion}! Estará listo ${user.horarioEntrega === '45 minutos' ? 'en aproximadamente 45 minutos' : `para las ${user.horarioEntrega}`}. 🍽️`;
+
+        client.sendMessage(from, mensajeCliente);
+
+        // Guardar el pedido
+        fs.appendFileSync('pedidos.txt', `[${new Date().toLocaleString()}] ${resumen.replace(/\n/g, ' | ')}\n`);
+
+        // Enviar al grupo
+        const chats = await client.getChats();
+        const grupo = chats.find(c => c.isGroup && c.name === 'Bot_chat');
+        if (grupo) {
+            await grupo.sendMessage(resumen);
+            if (user.metodoPago === 'transferencia') {
+                const media = await message.downloadMedia();
+                if (media) {
+                    await grupo.sendMessage(new MessageMedia(media.mimetype, media.data, `comprobante_${numeroLimpio}_${Date.now()}.png`));
+                }
+            }
+        }
+
+        delete usuarios[from];
+        return;
     }
 
     const palabrasMenu = [
