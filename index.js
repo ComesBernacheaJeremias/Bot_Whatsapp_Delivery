@@ -5,7 +5,25 @@ const xlsx = require('xlsx');
 const path = require('path');
 
 
-const client = new Client({ authStrategy: new LocalAuth() });
+process.on('SIGINT', async () => {
+    console.log('🛑 Cerrando el bot...');
+    await client.destroy();
+    process.exit(0);
+});
+
+//const client = new Client({ authStrategy: new LocalAuth() });
+const client = new Client({
+  authStrategy: new LocalAuth({
+    dataPath: './session_data', // Carpeta personalizada para sesión
+    clientId: "bot-esquina-food" // Identificador único---POSIBLEMENTE CAMBIAR
+  }),
+  puppeteer: { 
+    headless: true,
+    args: ['--no-sandbox']
+  }
+});
+
+
 let botStartTime = Math.floor(Date.now() / 1000);
 const usuarios = {};
 
@@ -209,6 +227,18 @@ client.on('ready', () => {
     console.log('✅ Bot conectado correctamente a WhatsApp');
 });
 
+client.on('disconnected', async (reason) => {
+    console.log('⚠️ Sesión desconectada:', reason);
+    setTimeout(async () => {
+        try {
+            await client.initialize();
+            console.log('🔄 Reconexión exitosa');
+        } catch (error) {
+            console.error('❌ Error al intentar reconectar:', error);
+        }
+    }, 5000); // Retraso de 5 segundos
+});
+
 function leerConfig() {
     try {
         const data = fs.readFileSync('config.txt', 'utf8');
@@ -333,7 +363,7 @@ client.on('message', async (message) => {
     // Manejo de confirmación
     if (user.esperandoConfirmacion) {
         console.log(`Confirmación esperada. Texto recibido: "${texto}"`);
-        const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien"];
+        const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien", "solo eso", "confirmo"];
         if (confirmPhrases.some(phrase => texto === phrase || texto.includes(phrase))) {
             console.log(`Confirmación detectada: "${texto}" coincide con alguna frase válida`);
             user.esperandoConfirmacion = false;
@@ -690,6 +720,3 @@ if (!isSubscriptionActive()) {
 startSubscriptionCheck();
 
 client.initialize();
-
-//dasdkjaklsdjaklsdjklad
-//asdasdasdasdasda
