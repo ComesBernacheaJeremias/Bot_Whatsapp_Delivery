@@ -4,26 +4,27 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
 
+const crypto = require('crypto');
+require('dotenv').config();
 
+
+// Manejador para cerrar el bot limpiamente
 process.on('SIGINT', async () => {
     console.log('🛑 Cerrando el bot...');
     await client.destroy();
     process.exit(0);
 });
 
-//const client = new Client({ authStrategy: new LocalAuth() });
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: './session_data', // Carpeta personalizada para sesión
-    clientId: "bot-esquina-food" // Identificador único---POSIBLEMENTE CAMBIAR
+    dataPath: './session_data',
+    clientId: "bot-esquina-food"
   }),
   puppeteer: { 
     headless: true,
     args: ['--no-sandbox']
   }
 });
-
-
 let botStartTime = Math.floor(Date.now() / 1000);
 const usuarios = {};
 
@@ -49,7 +50,6 @@ const sinonimos = {
 };
 
 
-const crypto = require('crypto');
 
 // Configuración de la encriptación
 require('dotenv').config();
@@ -363,7 +363,7 @@ client.on('message', async (message) => {
     // Manejo de confirmación
     if (user.esperandoConfirmacion) {
         console.log(`Confirmación esperada. Texto recibido: "${texto}"`);
-        const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien", "solo eso", "confirmo"];
+        const confirmPhrases = ["quiero confirmar", "nada mas", "eso es todo", "confirmar", "esta bien"];
         if (confirmPhrases.some(phrase => texto === phrase || texto.includes(phrase))) {
             console.log(`Confirmación detectada: "${texto}" coincide con alguna frase válida`);
             user.esperandoConfirmacion = false;
@@ -720,3 +720,4 @@ if (!isSubscriptionActive()) {
 startSubscriptionCheck();
 
 client.initialize();
+
